@@ -1,0 +1,4 @@
+dist/
+*.log
+npm-debug.log*
+region-trial/settings.json

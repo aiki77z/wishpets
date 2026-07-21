@@ -1,0 +1,72 @@
+{
+  "ok": true,
+  "chroma_key": {
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "threshold": 96.0
+  },
+  "rows": [
+    {
+      "state": "idle",
+      "frames": [
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\idle\\00.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\idle\\01.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\idle\\02.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\idle\\03.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\idle\\04.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\idle\\05.png"
+      ],
+      "method": "stable-slots"
+    },
+    {
+      "state": "waving",
+      "frames": [
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waving\\00.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waving\\01.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waving\\02.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waving\\03.png"
+      ],
+      "method": "stable-slots"
+    },
+    {
+      "state": "waiting",
+      "frames": [
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waiting\\00.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waiting\\01.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waiting\\02.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waiting\\03.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waiting\\04.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\waiting\\05.png"
+      ],
+      "method": "stable-slots"
+    },
+    {
+      "state": "running",
+      "frames": [
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\running\\00.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\running\\01.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\running\\02.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\running\\03.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\running\\04.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\running\\05.png"
+      ],
+      "method": "stable-slots"
+    },
+    {
+      "state": "review",
+      "frames": [
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\review\\00.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\review\\01.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\review\\02.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\review\\03.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\review\\04.png",
+        "D:\\nctwishpets\\kuri\\hatch-run\\frames\\review\\05.png"
+      ],
+      "method": "stable-slots"
+    }
+  ]
+}
