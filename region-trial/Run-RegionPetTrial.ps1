@@ -1,6 +1,6 @@
 param(
   [string]$PetId = "yushi",
-  [double]$Scale = 0.6,
+  [double]$Scale = 1.0,
   [int]$AlphaThreshold = 4,
   [int]$RegionAlphaThreshold = 12,
   [int]$EdgePadding = 2,
@@ -175,7 +175,7 @@ public static class RegionPetTrial
     {
         public string DisplayName;
         public List<string> BubbleLines = new List<string>();
-        public double Scale = 0.6;
+        public double Scale = 1.0;
         public int X = int.MinValue;
         public int Y = int.MinValue;
     }
@@ -646,8 +646,8 @@ public static class RegionPetTrial
 
         private double ClampScale(double value)
         {
-            if (Double.IsNaN(value) || Double.IsInfinity(value)) return 0.6;
-            return Math.Min(0.6, Math.Max(0.25, value));
+            if (Double.IsNaN(value) || Double.IsInfinity(value)) return 1.0;
+            return Math.Min(1.0, Math.Max(0.4, value));
         }
 
         private string PrettyJson(string compact)
@@ -1149,7 +1149,7 @@ public static class RegionPetTrial
         private void OnMouseWheel(object sender, MouseEventArgs e)
         {
             double step = e.Delta > 0 ? 0.05 : -0.05;
-            petSettings.Scale = Math.Min(0.6, Math.Max(0.25, petSettings.Scale + step));
+            petSettings.Scale = Math.Min(1.0, Math.Max(0.4, petSettings.Scale + step));
             ClearFrameCache();
             ApplyCurrentFrame();
             manager.SaveSettings();

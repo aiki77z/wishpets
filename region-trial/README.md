@@ -21,7 +21,7 @@ Build the Windows setup package:
 powershell -ExecutionPolicy Bypass -File .\region-trial\package\Build-NativeWinSetup.ps1
 ```
 
-The generated installer is written to `dist/WishPets-Setup-1.0.0.exe`.
+The generated installer is written to `dist/WishPets-Setup-1.0.1.exe`.
 Packaged pet sprites are stored in a single `wish-pets-assets.pak` file in the
 installed app directory instead of exposed as individual PNG folders.
 
@@ -79,5 +79,5 @@ Notes:
   if the outline is clipped; raise it if faint alpha noise creates stray pixels.
 - `-EdgePadding` adds a tiny transparent crop margin around each frame to avoid
   shaving off soft antialias edges.
-- `-Scale` defaults to `0.6` and is clamped at `0.6` in this trial, so the pet's
-  maximum size is 60% of the previous test size.
+- `-Scale` defaults to `1.0` and is clamped at `1.0`, so the pet is rendered at
+  the source atlas size for sharper edges and details.
