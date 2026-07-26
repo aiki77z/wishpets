@@ -1,7 +1,0 @@
-Create one clean full-body reference sprite for Codex pet yushi.
-
-Pet identity: Base only for user approval. Preserve the reference character colors: warm cream cup body, orange cup rim and top tab, white cat face/body, pink inner ears, dark brown coffee-bean ornament on upper right, dark brown/black simple cat eyes nose mouth and short whisker marks. Full-body centered standing pose, no crop..
-Style: Pet-safe sprite: compact full-body mascot, readable in a 192x208 cell, clear silhouette, simple face, stable palette/materials, and crisp edges for chroma-key extraction. Style `sticker`: Polished sticker mascot with bold clean shapes, crisp outline, flat colors, and minimal highlight detail. User style notes: 2D flat illustration, chibi plush-doll feeling, official merch standee/sticker look, clean thick outline, simple rounded color blocks, slight flat 2D shadow only, transparent-ready clean sprite; no 3D, no realistic plush photo texture, no clay/C4D/Blender, no clothing, no blue tag, no star, no text, no watermark, no background pattern..
-
-
-Place a single centered pose on a perfectly flat pure user-selected #00FF00 chroma-key background. Keep the full pet visible, compact, readable at 192x208, and easy to animate. Preserve approved reference identity cues. No scenery, text, borders, checkerboard transparency, shadows, glows, detached effects, or extra props. Keep #00FF00 and close colors out of the pet, props, highlights, and effects.

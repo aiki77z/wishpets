@@ -1,7 +1,0 @@
-Create one clean full-body reference sprite for Codex pet Kuri.
-
-Pet identity: Use the uploaded references as identity: dark blue-gray chibi cat, large glossy black eyes with small white highlights, black simple whiskers, tiny black nose and cat mouth, pink spiral cheek marks, pink paw pads, chest paw pad, chestnut cap on head, pink heart patch in left ear with black double ring detail, light green star-like patch in right ear; no red crossbody accessory and no clothing..
-Style: Pet-safe sprite: compact full-body mascot, readable in a 192x208 cell, clear silhouette, simple face, stable palette/materials, and crisp edges for chroma-key extraction. Style `flat-vector`: Flat vector-style mascot with simple geometric forms, crisp color areas, clean outline, and minimal shading. User style notes: 2D flat chibi mascot illustration, official merchandise standing art, sticker-like clean linework, simple rounded color blocks, transparent-ready sprite asset; avoid 3D, plush-photo, clay, realistic lighting, clothes, blue tags, text, watermark, background pattern..
-
-
-Place a single centered pose on a perfectly flat pure user-selected #00FF00 chroma-key background. Keep the full pet visible, compact, readable at 192x208, and easy to animate. Preserve approved reference identity cues. No scenery, text, borders, checkerboard transparency, shadows, glows, detached effects, or extra props. Keep #00FF00 and close colors out of the pet, props, highlights, and effects.

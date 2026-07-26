@@ -1,4 +1,65 @@
-dist/
-*.log
+# Node / Electron
+node_modules/
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+out/
+release/
+*.blockmap
+builder-debug.yml
+builder-effective-config.yaml
+
+# Runtime state
+window-state.json
+chat-state.json
 region-trial/settings.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*.tmp
+*.temp
+*.bak
+*.log
+.vscode/
+.idea/
+
+# Generated pet working files stay local.
+region-trial/
+*/decoded/
+*/final/
+*/frames/
+*/hatch-run/
+*/prompts/
+*/qa/
+*/references/
+*/base/
+*/imagegen-jobs.json
+*/pet.json
+*/pet_request.json
+*/validation.json
+*/spritesheet.png
+
+# Keep only these packaged pet atlases for GitHub mac builds.
+!jaehee/spritesheet.webp
+!kuri/spritesheet.webp
+!ryo/spritesheet.webp
+!sakupang/spritesheet.webp
+!sioning/spritesheet.webp
+!yushi/spritesheet.webp
+
+# Source icon drops stay local; packaged icons live in build/.
+NCT_WISH_icon.icns
+NCT_WISH_icon.ico
+icon_mac.icns
+icon_windows.ico
+
+# Archives
+*.zip

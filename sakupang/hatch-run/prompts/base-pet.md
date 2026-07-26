@@ -1,7 +1,0 @@
-Create one clean full-body reference sprite for Codex pet sakupang.
-
-Pet identity: Use references for identity: white rounded head and body, pink heart-shaped ears with white inner heart cutouts, pink round arms and feet, pink heart on belly, brown oval eyes with white highlights and tiny lashes, pink nose, dark brown smiling mouth with small tongue, pink spiral cheeks. Do not include the top hanging charm/metal loop, diagonal strap, dangling heart pouch, clothes, blue tag, extra hearts/stars/text/watermarks/background. Keep front-facing full body centered..
-Style: Pet-safe sprite: compact full-body mascot, readable in a 192x208 cell, clear silhouette, simple face, stable palette/materials, and crisp edges for chroma-key extraction. Style `sticker`: Polished sticker mascot with bold clean shapes, crisp outline, flat colors, and minimal highlight detail. User style notes: 2D flat chibi official merchandise standee / sticker illustration; clean bold outline; simple rounded color blocks; slight 2D cel shadow only; no 3D, no plush texture, no realistic fur..
-
-
-Place a single centered pose on a perfectly flat pure user-selected #00FF00 chroma-key background. Keep the full pet visible, compact, readable at 192x208, and easy to animate. Preserve approved reference identity cues. No scenery, text, borders, checkerboard transparency, shadows, glows, detached effects, or extra props. Keep #00FF00 and close colors out of the pet, props, highlights, and effects.
