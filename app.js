@@ -775,7 +775,7 @@ petButton.addEventListener("click", (event) => {
   state.controlsHoverOpen = false;
   renderShellControls();
   cycleBubble(1);
-  activateAction("waving");
+  activateAction("jumping");
 });
 
 petButton.addEventListener("contextmenu", async (event) => {

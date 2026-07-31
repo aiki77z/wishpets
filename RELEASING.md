@@ -11,13 +11,13 @@ Electron releases are built from the `electron` branch by GitHub Actions.
 
 ## Tag Release
 
-Push a version tag from the `electron` branch. For version 1.1.1:
+Push a version tag from the `electron` branch. For version 1.1.2:
 
 ```powershell
 git switch electron
 git push origin electron
-git tag v1.1.1
-git push origin v1.1.1
+git tag v1.1.2
+git push origin v1.1.2
 ```
 
 The workflow builds:
