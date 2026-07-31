@@ -1,9 +1,9 @@
 {
   "name": "wish-pets",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "private": true,
-  "description": "Electron desktop pet shell wired to finalized NCT WISH pet atlases.",
-  "author": "wish pets",
+  "description": "Desktop pet shell wired to finalized NCT WISH pet atlases.",
+  "author": "NCT WISH Pets",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -18,7 +18,7 @@
   },
   "build": {
     "appId": "com.nctwish.wishpets",
-    "productName": "wish pets",
+    "productName": "NCT WISH Pets",
     "directories": {
       "output": "dist"
     },
@@ -28,12 +28,16 @@
       "build/icon.ico",
       "build/icon.icns",
       "index.html",
+      "ipad.html",
+      "ipad-memo.css",
+      "ipad-memo.js",
       "main.js",
       "manifest.webmanifest",
       "package.json",
       "pet-data.js",
       "preload.js",
       "styles.css",
+      "sw.js",
       "jaehee/spritesheet.webp",
       "kuri/spritesheet.webp",
       "ryo/spritesheet.webp",
@@ -71,10 +75,10 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "artifactName": "wish-pets-win11-Setup-${version}.${ext}"
+      "artifactName": "NCT-WISH-Pets-win11-Setup-${version}.${ext}"
     },
     "portable": {
-      "artifactName": "wish-pets-win11-${version}.${ext}"
+      "artifactName": "NCT-WISH-Pets-win11-${version}.${ext}"
     }
   }
 }

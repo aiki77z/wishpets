@@ -1,13 +1,13 @@
 {
-  "name": "wish pets",
-  "short_name": "wish pets",
-  "description": "NCT WISH pet companion for desktop.",
-  "start_url": "./index.html",
+  "name": "NCT WISH Pets",
+  "short_name": "WISH Pets",
+  "description": "NCT WISH pet companion for desktop and iPad.",
+  "start_url": "./ipad.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f4efe7",
-  "theme_color": "#f4efe7",
+  "background_color": "#eaf7ff",
+  "theme_color": "#eaf7ff",
   "icons": [
     {
       "src": "./build/icon.ico",

@@ -1,4 +1,4 @@
-name: build-mac
+name: build-electron
 
 on:
   workflow_dispatch:
@@ -7,20 +7,14 @@ on:
       - "v*.*.*"
       - "*.*.*"
 
+permissions:
+  contents: write
+
 jobs:
-  mac:
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        arch:
-          - arm64
-          - x64
+  windows:
+    runs-on: windows-latest
     env:
-      # Opt-in early so JS-based actions don't run on deprecated Node 20.
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -34,10 +28,56 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build mac artifacts (dmg + zip)
+      - name: Build Windows installer
+        run: npx electron-builder --win nsis --x64 --publish never
+
+      - name: Build Windows portable
+        run: npx electron-builder --win portable --x64 --publish never
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: NCT-WISH-Pets-win-x64
+          path: |
+            dist/*Setup*.exe
+            dist/*win11*.exe
+
+      - name: Publish Windows artifacts
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/*Setup*.exe
+            dist/*win11*.exe
+
+  mac:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - arm64
+          - x64
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS artifacts
         run: npm run dist:mac -- --${{ matrix.arch }} --publish never
 
-      - name: Normalize artifact names
+      - name: Normalize macOS artifact names
         shell: bash
         run: |
           set -euo pipefail
@@ -58,7 +98,6 @@ jobs:
             printf '%s\n' "${files[0]}"
           }
 
-          # DMG: electron-builder naming differs by arch/version; normalize to include "-$ARCH".
           dmgs=()
           while IFS= read -r dmg; do
             dmgs+=("$dmg")
@@ -70,7 +109,6 @@ jobs:
             fi
           fi
 
-          # ZIP: normalize to include "-$ARCH" before "-mac.zip".
           zips=()
           while IFS= read -r zip; do
             zips+=("$zip")
@@ -82,15 +120,15 @@ jobs:
             fi
           fi
 
-      - name: Upload artifacts
+      - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wish-pets-mac-${{ matrix.arch }}
+          name: NCT-WISH-Pets-mac-${{ matrix.arch }}
           path: |
             dist/*-${{ matrix.arch }}.dmg
             dist/*-${{ matrix.arch }}-mac.zip
 
-      - name: Publish to GitHub Release
+      - name: Publish macOS artifacts
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:

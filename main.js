@@ -3,12 +3,37 @@ const fs = require("fs");
 const path = require("path");
 
 const WINDOW_STATE_FILE = "window-state.json";
-const APP_DISPLAY_NAME = "wish pets";
-const STATE_SCHEMA_VERSION = 3;
-const PET_SCALE_LIMITS = { min: 0.35, max: 0.6 };
+const APP_DISPLAY_NAME = "NCT WISH Pets";
+const STATE_SCHEMA_VERSION = 5;
+const PET_SCALE_LIMITS = { min: 0.35, max: 0.7 };
 const PET_ASPECT_RATIO = 384 / 416;
 const DEFAULT_PET_SCALE = 0.6;
+const PET_BASE_WIDTH = 184;
+const PANEL_WINDOW_SIZE = { width: 360, height: 360 };
+const BUBBLE_EDITOR_WINDOW_SIZE = { width: 660, height: 520 };
+const PATROL_SPEED_PX = 1.4;
+const PATROL_TICK_MS = 24;
+const PET_ACTIONS = [
+  { id: "idle", label: "Idle" },
+  { id: "running-right", label: "Walk Right" },
+  { id: "running-left", label: "Walk Left" },
+  { id: "waving", label: "Wave" },
+  { id: "jumping", label: "Jump" },
+  { id: "failed", label: "Fail" },
+  { id: "waiting", label: "Wait" },
+  { id: "running", label: "Busy" },
+  { id: "review", label: "Review" }
+];
 const PET_OPTIONS = [
+  { id: "hwangchoon", label: "黄春" },
+  { id: "choiyongmeong", label: "崔勇萌" },
+  { id: "bamgeut", label: "杋嘻" },
+  { id: "dagonyang", label: "松喵喵" },
+  { id: "hhmnyaring", label: "哼呀宁" }
+];
+const DEFAULT_PET_ID = "hwangchoon";
+const PET_ID_SET = new Set(PET_OPTIONS.map((pet) => pet.id));
+const APP_PET_OPTIONS = [
   { id: "jaehee", label: "Jaehee" },
   { id: "kuri", label: "Kuri" },
   { id: "ryo", label: "Ryo" },
@@ -16,14 +41,15 @@ const PET_OPTIONS = [
   { id: "sioning", label: "Sioning" },
   { id: "yushi", label: "Yushi" }
 ];
-const DEFAULT_PET_ID = "yushi";
-const PET_ID_SET = new Set(PET_OPTIONS.map((pet) => pet.id));
+const APP_DEFAULT_PET_ID = "jaehee";
+const APP_PET_ID_SET = new Set(APP_PET_OPTIONS.map((pet) => pet.id));
 
 let tray = null;
 let isQuitting = false;
 let currentState = null;
 const petWindows = new Map();
 const dragSessions = new Map();
+const patrolSessions = new Map();
 const closingPets = new Set();
 
 app.setName(APP_DISPLAY_NAME);
@@ -64,6 +90,8 @@ function defaultPetWindowState(petId) {
     petId,
     petScale: DEFAULT_PET_SCALE,
     companionMode: false,
+    panelOpen: false,
+    patrolMode: false,
     bubbleEditorOpen: false
   };
 }
@@ -75,18 +103,20 @@ function defaultState() {
     openAtLogin: true,
     bubbleEnabled: true,
     hideDockIcon: false,
-    petWindows: [defaultPetWindowState(DEFAULT_PET_ID)],
+    petWindows: [defaultPetWindowState(APP_DEFAULT_PET_ID)],
     hiddenPetWindows: []
   };
 }
 
 function normalizePetWindowState(entry, fallbackPetScale = DEFAULT_PET_SCALE) {
-  if (!entry || !PET_ID_SET.has(entry.petId)) return null;
+  if (!entry || !APP_PET_ID_SET.has(entry.petId)) return null;
 
   const next = {
     ...defaultPetWindowState(entry.petId),
     petScale: clampPetScale(entry.petScale ?? fallbackPetScale),
     companionMode: Boolean(entry.companionMode),
+    panelOpen: false,
+    patrolMode: Boolean(entry.patrolMode),
     bubbleEditorOpen: false
   };
 
@@ -112,7 +142,7 @@ function normalizeState(savedState) {
     }
   }
 
-  if (!petWindowsState.length && PET_ID_SET.has(savedState.selectedPetId)) {
+  if (!petWindowsState.length && APP_PET_ID_SET.has(savedState.selectedPetId)) {
     const migrated = normalizePetWindowState({
       petId: savedState.selectedPetId,
       x: savedState.x,
@@ -172,23 +202,27 @@ function ensurePetWindowState(petId) {
 
 function getWindowSizeForPetScale(scale, options = {}) {
   const normalizedScale = clampPetScale(scale);
-  const petWidth = 200 * normalizedScale;
+  const petWidth = PET_BASE_WIDTH * normalizedScale;
   const petHeight = petWidth / PET_ASPECT_RATIO;
 
   if (options.bubbleEditorOpen) {
-    return { width: 660, height: 520 };
+    return BUBBLE_EDITOR_WINDOW_SIZE;
+  }
+
+  if (options.panelOpen) {
+    return PANEL_WINDOW_SIZE;
   }
 
   if (options.companionMode) {
     return {
-      width: Math.max(304, Math.round(petWidth + 48)),
-      height: Math.max(198, Math.round(petHeight + 118))
+      width: Math.max(166, Math.round(petWidth + 46)),
+      height: Math.max(198, Math.round(petHeight + 70))
     };
   }
 
   return {
-    width: Math.max(214, Math.round(petWidth + 64)),
-    height: Math.max(410, Math.round(petHeight + 330))
+    width: Math.max(174, Math.round(petWidth + 52)),
+    height: Math.max(208, Math.round(petHeight + 82))
   };
 }
 
@@ -196,6 +230,7 @@ function getWindowSizeForPet(petId) {
   const petState = ensurePetWindowState(petId);
   return getWindowSizeForPetScale(petState.petScale, {
     companionMode: petState.companionMode,
+    panelOpen: petState.panelOpen,
     bubbleEditorOpen: petState.bubbleEditorOpen
   });
 }
@@ -258,6 +293,8 @@ function sendShellSettings(window) {
     openAtLogin: currentState.openAtLogin,
     bubbleEnabled: currentState.bubbleEnabled,
     companionMode: petState.companionMode,
+    panelOpen: petState.panelOpen,
+    patrolMode: petState.patrolMode,
     petId: window.petId,
     activePetIds: listActivePetIds(),
     hideDockIcon: currentState.hideDockIcon,
@@ -284,7 +321,7 @@ function createMacTrayIcon() {
     <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
       <rect x="4" y="4" width="36" height="36" rx="9" fill="#ffffff"/>
       <rect x="5.5" y="5.5" width="33" height="33" rx="7.5" fill="none" stroke="#111111" stroke-width="3"/>
-      <text x="22" y="29" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="21" font-weight="800" fill="#111111">W</text>
+      <text x="22" y="29" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="21" font-weight="800" fill="#111111">S</text>
     </svg>
   `.trim();
   const icon = nativeImage.createFromDataURL(`data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`);
@@ -346,7 +383,7 @@ function showAllPets() {
   let firstWindow = null;
   currentState.hiddenPetWindows = [];
 
-  for (const { id: petId } of PET_OPTIONS) {
+  for (const { id: petId } of APP_PET_OPTIONS) {
     ensurePetWindowState(petId);
     const window = showPetWindow(petId);
     if (!firstWindow) firstWindow = window;
@@ -371,7 +408,7 @@ function getHiddenPetWindowStates() {
 
 function restoreHiddenPets() {
   const hiddenPetWindows = getHiddenPetWindowStates();
-  const petsToRestore = hiddenPetWindows.length ? hiddenPetWindows : [defaultPetWindowState(DEFAULT_PET_ID)];
+  const petsToRestore = hiddenPetWindows.length ? hiddenPetWindows : [defaultPetWindowState(APP_DEFAULT_PET_ID)];
   currentState.petWindows = petsToRestore;
   currentState.hiddenPetWindows = [];
 
@@ -395,6 +432,7 @@ function hideAllPets() {
     .map((entry) => {
       const window = petWindows.get(entry.petId);
       if (window && !window.isDestroyed()) {
+        stopPatrol(window, { quiet: true });
         stopWindowDrag(window);
         syncBoundsIntoState(window);
       }
@@ -442,6 +480,11 @@ function applyWindowSizeForPet(window, anchor = "center") {
 
   window.setBounds(clampBoundsToWorkArea(nextBounds));
   writeWindowStateForWindow(window);
+}
+
+function sendPetCommand(window, command) {
+  if (!window || window.isDestroyed()) return;
+  window.webContents.send("shell:pet-command", command);
 }
 
 function setAlwaysOnTop(enabled) {
@@ -518,11 +561,27 @@ function setCompanionMode(window, enabled) {
   return petState.companionMode;
 }
 
+function setPanelOpen(window, open) {
+  if (!window || window.isDestroyed()) return false;
+
+  const petState = ensurePetWindowState(window.petId);
+  petState.panelOpen = Boolean(open);
+  if (petState.panelOpen) {
+    petState.bubbleEditorOpen = false;
+  }
+  applyWindowSizeForPet(window, "center");
+  sendShellSettings(window);
+  return petState.panelOpen;
+}
+
 function setBubbleEditorOpen(window, open) {
   if (!window || window.isDestroyed()) return false;
 
   const petState = ensurePetWindowState(window.petId);
   petState.bubbleEditorOpen = Boolean(open);
+  if (petState.bubbleEditorOpen) {
+    petState.panelOpen = false;
+  }
   applyWindowSizeForPet(window, "center");
   sendShellSettings(window);
   return petState.bubbleEditorOpen;
@@ -539,9 +598,81 @@ function stopWindowDrag(window) {
   writeWindowStateForWindow(window);
 }
 
+function stopPatrol(window, options = {}) {
+  if (!window || window.isDestroyed()) return false;
+
+  const session = patrolSessions.get(window.petId);
+  if (session) {
+    clearInterval(session.timer);
+    patrolSessions.delete(window.petId);
+  }
+
+  const petState = ensurePetWindowState(window.petId);
+  petState.patrolMode = false;
+  writeWindowStateForWindow(window);
+  sendShellSettings(window);
+  if (!options.quiet) {
+    sendPetCommand(window, { type: "action", action: "idle" });
+  }
+  return false;
+}
+
+function startPatrol(window) {
+  if (!window || window.isDestroyed()) return true;
+
+  const petState = ensurePetWindowState(window.petId);
+  petState.patrolMode = true;
+  writeWindowState();
+
+  if (patrolSessions.has(window.petId)) {
+    sendShellSettings(window);
+    return true;
+  }
+
+  let direction = 1;
+  sendPetCommand(window, { type: "action", action: "running-right", hold: true, quiet: true, patrol: true });
+
+  const timer = setInterval(() => {
+    if (!window || window.isDestroyed()) {
+      clearInterval(timer);
+      patrolSessions.delete(window?.petId);
+      return;
+    }
+
+    const bounds = window.getBounds();
+    const { workArea } = screen.getDisplayMatching(bounds);
+    let nextX = Math.round(bounds.x + direction * PATROL_SPEED_PX);
+    const minX = workArea.x;
+    const maxX = workArea.x + workArea.width - bounds.width;
+
+    if (nextX <= minX) {
+      nextX = minX;
+      direction = 1;
+      sendPetCommand(window, { type: "action", action: "running-right", hold: true, quiet: true, patrol: true });
+    } else if (nextX >= maxX) {
+      nextX = maxX;
+      direction = -1;
+      sendPetCommand(window, { type: "action", action: "running-left", hold: true, quiet: true, patrol: true });
+    }
+
+    window.setPosition(nextX, bounds.y);
+  }, PATROL_TICK_MS);
+
+  patrolSessions.set(window.petId, { timer });
+  sendShellSettings(window);
+  return true;
+}
+
+function setPatrolMode(window, enabled) {
+  if (!window || window.isDestroyed()) return false;
+  if (enabled) return startPatrol(window);
+  return stopPatrol(window);
+}
+
 function startWindowDrag(window) {
   if (!window || window.isDestroyed()) return false;
 
+  stopPatrol(window, { quiet: true });
   stopWindowDrag(window);
   const cursor = screen.getCursorScreenPoint();
   const bounds = window.getBounds();
@@ -576,7 +707,7 @@ function resetAllPetPositions() {
 }
 
 function addPetToDesktop(petId) {
-  if (!PET_ID_SET.has(petId)) return;
+  if (!APP_PET_ID_SET.has(petId)) return;
   currentState.hiddenPetWindows = [];
   if (!getPetWindowState(petId)) {
     currentState.petWindows.push(defaultPetWindowState(petId));
@@ -596,6 +727,7 @@ function removePetFromDesktop(petId) {
   const window = petWindows.get(petId);
   if (window && !window.isDestroyed()) {
     closingPets.add(petId);
+    stopPatrol(window, { quiet: true });
     stopWindowDrag(window);
     window.close();
   }
@@ -606,7 +738,7 @@ function removePetFromDesktop(petId) {
 }
 
 function buildPetSelectionSubmenu() {
-  return PET_OPTIONS.map((pet) => ({
+  return APP_PET_OPTIONS.map((pet) => ({
     label: pet.label,
     type: "checkbox",
     checked: Boolean(getPetWindowState(pet.id)),
@@ -730,6 +862,122 @@ function refreshTrayMenu() {
   tray.setContextMenu(Menu.buildFromTemplate(menuTemplate));
 }
 
+function showPetControlMenu(window) {
+  if (!window || window.isDestroyed()) return false;
+  const petState = ensurePetWindowState(window.petId);
+
+  const menuTemplate = [
+    {
+      label: "Control Panel",
+      enabled: false
+    },
+    { type: "separator" },
+    {
+      label: "Patrol Mode",
+      type: "checkbox",
+      checked: Boolean(petState.patrolMode),
+      click: (item) => setPatrolMode(window, item.checked)
+    },
+    {
+      label: "Gait",
+      submenu: [
+        {
+          label: "Idle",
+          click: () => {
+            stopPatrol(window, { quiet: true });
+            sendPetCommand(window, { type: "action", action: "idle" });
+          }
+        },
+        {
+          label: "Walk Left",
+          click: () => {
+            stopPatrol(window, { quiet: true });
+            sendPetCommand(window, { type: "action", action: "running-left", hold: true });
+          }
+        },
+        {
+          label: "Walk Right",
+          click: () => {
+            stopPatrol(window, { quiet: true });
+            sendPetCommand(window, { type: "action", action: "running-right", hold: true });
+          }
+        },
+        {
+          label: "Busy Run",
+          click: () => {
+            stopPatrol(window, { quiet: true });
+            sendPetCommand(window, { type: "action", action: "running", hold: true });
+          }
+        }
+      ]
+    },
+    {
+      label: "Actions",
+      submenu: PET_ACTIONS
+        .filter((action) => !["idle", "running-left", "running-right", "running"].includes(action.id))
+        .map((action) => ({
+          label: action.label,
+          click: () => {
+            stopPatrol(window, { quiet: true });
+            sendPetCommand(window, { type: "action", action: action.id });
+          }
+        }))
+    },
+    { type: "separator" },
+    {
+      label: "Next Bubble",
+      click: () => sendPetCommand(window, { type: "bubble-next" })
+    },
+    {
+      label: "Rename Pet",
+      click: () => sendPetCommand(window, { type: "open-name-editor" })
+    },
+    {
+      label: "Edit Bubble Text",
+      click: () => sendPetCommand(window, { type: "open-bubble-editor" })
+    },
+    {
+      label: "Scale Pet",
+      submenu: [
+        { label: "Small", click: () => setPetScale(window, 0.4) },
+        { label: "Medium", click: () => setPetScale(window, 0.55) },
+        { label: "Large", click: () => setPetScale(window, 0.7) }
+      ]
+    },
+    { type: "separator" },
+    {
+      label: "Show Bubbles",
+      type: "checkbox",
+      checked: currentState.bubbleEnabled,
+      click: (item) => setBubbleEnabled(item.checked)
+    },
+    {
+      label: "Always On Top",
+      type: "checkbox",
+      checked: currentState.alwaysOnTop,
+      click: (item) => setAlwaysOnTop(item.checked)
+    },
+    {
+      label: "Close This Pet",
+      click: () => removePetFromDesktop(window.petId)
+    },
+    { type: "separator" },
+    ...buildPetControlMenuItems(),
+    {
+      label: "Quit",
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      }
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  menu.popup({ window, callback: () => setPanelOpen(window, false) });
+  setPanelOpen(window, false);
+  return true;
+}
+
 function createTray() {
   if (process.platform === "darwin") {
     refreshApplicationMenu();
@@ -752,7 +1000,7 @@ function createPetWindow(petId) {
     ? clampBoundsToWorkArea({ x: petState.x, y: petState.y, width: size.width, height: size.height })
     : getDefaultBoundsForPet(petId);
 
-  const petLabel = PET_OPTIONS.find((pet) => pet.id === petId)?.label || petId;
+  const petLabel = APP_PET_OPTIONS.find((pet) => pet.id === petId)?.label || petId;
   const window = new BrowserWindow({
     x: initialBounds.x,
     y: initialBounds.y,
@@ -794,10 +1042,14 @@ function createPetWindow(petId) {
     window.show();
     sendShellSettings(window);
     window.webContents.send("shell:bubbles-enabled", currentState.bubbleEnabled);
+    if (petState.patrolMode) {
+      startPatrol(window);
+    }
   });
 
   window.on("close", (event) => {
     if (isQuitting || closingPets.has(petId)) {
+      stopPatrol(window, { quiet: true });
       stopWindowDrag(window);
       writeWindowStateForWindow(window);
       return;
@@ -808,13 +1060,18 @@ function createPetWindow(petId) {
   });
 
   window.on("closed", () => {
+    stopPatrol(window, { quiet: true });
     stopWindowDrag(window);
     closingPets.delete(petId);
     petWindows.delete(petId);
     refreshTrayMenu();
   });
 
-  window.on("move", () => writeWindowStateForWindow(window));
+  window.on("move", () => {
+    if (!patrolSessions.has(petId)) {
+      writeWindowStateForWindow(window);
+    }
+  });
   window.on("blur", () => stopWindowDrag(window));
   window.on("show", () => sendShellSettings(window));
 
@@ -851,6 +1108,10 @@ ipcMain.handle("shell:set-bubble-editor-open", (event, open) => {
   return { bubbleEditorOpen: setBubbleEditorOpen(window, open) };
 });
 
+ipcMain.handle("shell:set-patrol-mode", (event, enabled) => {
+  return { patrolMode: setPatrolMode(getEventWindow(event), enabled) };
+});
+
 ipcMain.handle("shell:set-pet-input-transparent", (event, transparent) => {
   const window = getEventWindow(event);
   if (window && !window.isDestroyed()) {
@@ -866,6 +1127,10 @@ ipcMain.handle("shell:start-window-drag", (event) => {
 ipcMain.handle("shell:stop-window-drag", (event) => {
   stopWindowDrag(getEventWindow(event));
   return { ok: true };
+});
+
+ipcMain.handle("shell:show-control-menu", (event) => {
+  return { ok: showPetControlMenu(getEventWindow(event)) };
 });
 
 ipcMain.handle("shell:hide-window", () => {
@@ -889,13 +1154,15 @@ ipcMain.handle("shell:quit", () => {
 
 ipcMain.handle("shell:get-settings", (event) => {
   const window = getEventWindow(event);
-  const petState = window?.petId ? ensurePetWindowState(window.petId) : defaultPetWindowState(DEFAULT_PET_ID);
+  const petState = window?.petId ? ensurePetWindowState(window.petId) : defaultPetWindowState(APP_DEFAULT_PET_ID);
   return {
     alwaysOnTop: currentState.alwaysOnTop,
     openAtLogin: currentState.openAtLogin,
     bubbleEnabled: currentState.bubbleEnabled,
     companionMode: petState.companionMode,
-    petId: window?.petId || currentState.petWindows[0]?.petId || DEFAULT_PET_ID,
+    panelOpen: petState.panelOpen,
+    patrolMode: petState.patrolMode,
+    petId: window?.petId || currentState.petWindows[0]?.petId || APP_DEFAULT_PET_ID,
     activePetIds: listActivePetIds(),
     hideDockIcon: currentState.hideDockIcon,
     petScale: petState.petScale
@@ -955,6 +1222,7 @@ if (!gotSingleInstanceLock) {
   app.on("before-quit", () => {
     isQuitting = true;
     for (const window of petWindows.values()) {
+      stopPatrol(window, { quiet: true });
       writeWindowStateForWindow(window);
     }
   });

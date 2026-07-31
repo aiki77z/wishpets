@@ -1,22 +1,35 @@
-# Releasing (GitHub Actions)
+# Releasing Electron Builds
 
-## macOS
+Electron releases are built from the `electron` branch by GitHub Actions.
 
-This repo includes a GitHub Actions workflow that builds unsigned macOS artifacts on `macos-latest`.
+## Manual Build
 
-### Manual build
-
-1. Go to GitHub -> Actions -> build-mac.
+1. Go to GitHub -> Actions -> build-electron.
 2. Click Run workflow.
-3. Download `wish-pets-mac-arm64` and `wish-pets-mac-x64` from the run summary.
+3. Select the `electron` branch.
+4. Download the Windows and macOS artifacts from the run summary.
 
-### Tag release
+## Tag Release
 
-Push a tag matching `v*.*.*`, for example `v1.0.0`.
+Push a version tag from the `electron` branch. For version 1.1.1:
 
-The workflow builds both Apple Silicon and Intel artifacts, uploads Actions artifacts, and publishes them to a GitHub Release for tag builds.
+```powershell
+git switch electron
+git push origin electron
+git tag v1.1.1
+git push origin v1.1.1
+```
 
-### Notes
+The workflow builds:
 
-- The workflow does not sign or notarize the app.
-- macOS may show a Gatekeeper warning for unsigned apps. A smoother install requires Apple Developer signing and notarization secrets.
+- Windows x64 NSIS installer and portable executable
+- macOS Apple Silicon dmg/zip
+- macOS Intel dmg/zip
+
+Tag builds also publish the artifacts to a GitHub Release.
+
+## Notes
+
+- The macOS artifacts are unsigned and not notarized.
+- The workflow uses `npm ci`, so keep `package-lock.json` committed with the
+  matching app version.
